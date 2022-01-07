@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+   
+<mapper namespace="com.gyu.realty.view.mapper.MainPagingMapper">
+  <select id="getBoardListForPaging" parameterType="com.gyu.realty.view.vo.BoardContent" resultType="com.gyu.realty.view.vo.BoardContent">
+     <![CDATA[
+     	SELECT
+     		*
+     	FROM (
+		    SELECT
+		    	ROWNUM RN, 
+		    	A.*,
+	     		(
+	     			SELECT
+	     				count(content_no)
+	     			FROM
+	     				liketable
+	     			WHERE
+	     				content_no = A.no
+	     			AND
+	     				item_id = (
+	     							SELECT
+	     								account_id
+	     							FROM
+	     								member
+	     							WHERE
+	     								nickname = A.writer
+	     						)
+	     			AND
+	     				like_yn = 1
+	     		) as like_count
+			FROM (	     	
+		     	SELECT
+		     		no, 
+		     		title, 
+		     		contents, 
+		     		to_char(write_time, 'yyyy-mm-dd hh24:mi:ss') as write_time, 
+		     		writer, 
+		     		view_count	
+		     	FROM
+		     		content
+		     	ORDER BY write_time desc
+		     	) A
+		     )
+     	WHERE
+     		RN BETWEEN #{start} AND #{end}
+     ]]>
+  </select>
+   <select id="getTotalBoardListForPaging" resultType="integer">
+     <![CDATA[
+     	SELECT
+     		count(no)
+     	FROM
+     		content
+     ]]>
+  </select>
+   <select id="getWriter" parameterType="integer" resultType="string">
+     <![CDATA[
+     	SELECT
+     		writer
+     	FROM
+     		content
+     	WHERE
+     		no = #{no}
+     ]]>
+  </select>
+   <select id="getMember" parameterType="string" resultType="com.gyu.realty.api.vo.MemberVo">
+     <![CDATA[
+     	SELECT
+	 		nickname,
+	 		account_id,
+	 		account_pw,
+	 		account_type,
+	 		quit
+     	FROM
+     		member
+     	WHERE
+     		nickname = #{member}
+     ]]>
+  </select>
+    <select id="selectMember" resultType="com.gyu.realty.api.vo.MemberVo">
+  	SELECT
+  		nickname,
+  		account_id,
+  		account_pw,
+  		account_type,
+  		quit
+  	FROM
+  		member
+  	WHERE
+  		account_id = #{accountId}
+  	AND
+  		account_pw = #{accountPw}
+  </select>
+</mapper>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+   
+<mapper namespace="com.gyu.realty.api.mapper.MainInsertMapper">
+	<insert id="setInsertBoard" parameterType="com.gyu.realty.api.vo.BoardContent">
+	<![CDATA[
+		INSERT INTO content
+     		(title, contents, write_time, writer, view_count)
+     	VALUES
+     		(#{title}, #{contents}, systimestamp, #{writer}, 0)
+	]]>
+	</insert>
+  <select id="getNo" resultType="integer">
+  	SELECT
+  		max(no)
+  	FROM
+  		content
+  </select>
+  
+  <select id="getMember" resultType="com.gyu.realty.api.vo.MemberVo">
+  	SELECT
+  		*
+  	FROM
+  		member
+  	WHERE
+  		nickname = #{writer}
+  </select>
+  <select id="getBoardContent" parameterType="com.gyu.realty.api.vo.BoardContent" resultType="com.gyu.realty.api.vo.BoardContent">
+     <![CDATA[
+	   	SELECT
+	   		no, 
+	   		title, 
+	   		contents, 
+	   		to_char(write_time, 'yyyy-mm-dd hh24:mi:ss') as write_time, 
+	   		writer, 
+	   		view_count,
+	   		(
+	   			SELECT
+	   				count(content_no)
+	   			FROM
+	   				liketable
+	   			WHERE
+	   				content_no = #{no}
+	   			AND
+	   				item_id = (
+	   							SELECT
+	   								account_id
+	   							FROM
+	   								member
+	   							WHERE
+	   								nickname = #{writer}
+	   						)
+	   			AND
+	   				like_yn = 1
+	   		) as like_count
+	   	FROM
+	   		content
+	  	WHERE
+	  		no = #{no}
+     ]]>
+  </select>
+  <update id="setIncreseViewCount" parameterType="com.gyu.realty.api.vo.BoardContent" >
+  	UPDATE
+  		content
+  	SET
+  		view_count = view_count + 1
+  	WHERE
+  		no = #{no}
+  </update>
+  
+  <update id="updateBoard" parameterType="com.gyu.realty.api.vo.BoardContent" >
+  	UPDATE
+  		content
+  	SET
+  		title = #{title}, contents = #{contents}
+  	WHERE
+  		no = #{no}
+  </update>
+  
+  
+  <delete id="deleteBoard" parameterType="com.gyu.realty.api.vo.BoardContent" >
+  	DELETE FROM
+  		content
+  	WHERE
+  		no = #{no}
+  </delete>
+  <delete id="deleteLike" parameterType="com.gyu.realty.api.vo.BoardContent" >
+  	DELETE FROM
+  		liketable
+  	WHERE
+  		content_no = #{no}
+  	AND
+  		item_id = (
+  			SELECT
+  				account_id
+  			FROM
+  				member
+  			WHERE
+  				nickname = #{writer} 
+  		)
+  </delete>
+</mapper>
